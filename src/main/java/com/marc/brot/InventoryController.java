@@ -50,7 +50,6 @@ public class InventoryController {
         List<Stock> stocks = jdbcTemplate.query(sql, new StockRowMapper());
 
         return new ResponseEntity<Object>(stocks, HttpStatus.OK);
-
     }
 
     @CrossOrigin(origins = {"http://localhost:8080", "http://localhost:3000"})
@@ -60,7 +59,7 @@ public class InventoryController {
         ObjectMapper objectMapper = new ObjectMapper();
 
         String userSql = "SELECT userid, username, useremail FROM users WHERE useremail = ?";
-        String stockSql = "SELECT s.stockid, s.itemname, s.unit, SUM(s.quantity) AS quantity FROM stocks s WHERE userid = ?  GROUP BY s.stockid, s.itemname, s.unit;";
+        String stockSql = "SELECT s.stockid, s.itemname, s.unit, s.quantity AS quantity FROM stocks s WHERE userid = ?;";
 
         User user = jdbcTemplate.queryForObject(userSql, new Object[]{useremail}, new UserRowMapper());
         List<Map<String, Object>> stocks = jdbcTemplate.queryForList(stockSql, new Object[] { user.userid });
@@ -70,11 +69,12 @@ public class InventoryController {
 
     @CrossOrigin(origins = {"http://localhost:8080", "http://localhost:3000"})
     @PostMapping("/stock/delete")
-    public ResponseEntity<Object> ListStocksForUser(@RequestParam(name = "stockid") int stockid) {
+    public ResponseEntity<Object> DeleteStock(@RequestBody Map<String, String> stockMap) {
 
         String deleteStockSql = "DELETE FROM stocks WHERE stockid = ?";
+        int[] types = {Types.INTEGER};
 
-        jdbcTemplate.update(deleteStockSql, new Object[] { stockid });
+        jdbcTemplate.update(deleteStockSql, new Object[] { stockMap.get("stockid") }, types);
 
         return new ResponseEntity<Object>(HttpStatus.OK);
     }
